@@ -474,7 +474,10 @@ export class BaseTypesVisitor<
   protected buildEnumValuesBlock(typeName: string, values: ReadonlyArray<EnumValueDefinitionNode>): string {
     return values
       .map(enumOption => {
-        const optionName = this.convertName(enumOption, { useTypesPrefix: false, transformUnderscore: true });
+        const optionName = this.convertName(enumOption, {
+          useTypesPrefix: false,
+          transformUnderscore: true,
+        });
         const comment = transformComment((enumOption.description as any) as string, 1);
         let enumValue: string | number = enumOption.name as any;
 

@@ -110,7 +110,7 @@ export class DeclarationBlock {
   _comment = null;
   _ignoreBlockWrapper = false;
 
-  constructor(private _config: DeclarationBlockConfig) {
+  constructor(protected _config: DeclarationBlockConfig) {
     this._config = {
       blockWrapper: '',
       blockTransformer: block => block,
@@ -308,7 +308,7 @@ export function buildScalars(
   return result;
 }
 
-function isStringValueNode(node: any): node is StringValueNode {
+export function isStringValueNode(node: any): node is StringValueNode {
   return node && typeof node === 'object' && node.kind === Kind.STRING;
 }
 

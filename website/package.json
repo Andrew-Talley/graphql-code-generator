@@ -38,6 +38,7 @@
     "@graphql-codegen/java-resolvers": "1.15.0",
     "@graphql-codegen/jsdoc": "1.15.0",
     "@graphql-codegen/near-operation-file-preset": "1.15.0",
+    "@graphql-codegen/python": "1.15.0",
     "@graphql-codegen/schema-ast": "1.15.0",
     "@graphql-codegen/time": "1.15.0",
     "@graphql-codegen/typescript": "1.15.0",

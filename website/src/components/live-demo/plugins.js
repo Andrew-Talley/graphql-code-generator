@@ -5,13 +5,14 @@ export const presetLoaderMap = {
 };
 
 export const pluginLoaderMap = {
-  'jsdoc': () => import('@graphql-codegen/jsdoc'),
+  jsdoc: () => import('@graphql-codegen/jsdoc'),
   java: () => import('@graphql-codegen/java'),
   'java-resolvers': () => import('@graphql-codegen/java-resolvers'),
   'fragment-matcher': () => import('@graphql-codegen/fragment-matcher'),
   flow: () => import('@graphql-codegen/flow'),
   'flow-operations': () => import('@graphql-codegen/flow-operations'),
   'flow-resolvers': () => import('@graphql-codegen/flow-resolvers'),
+  python: () => import('@graphql-codegen/python'),
   typescript: () => import('@graphql-codegen/typescript'),
   'typescript-compatibility': () => import('@graphql-codegen/typescript-compatibility'),
   'typescript-operations': () => import('@graphql-codegen/typescript-operations'),

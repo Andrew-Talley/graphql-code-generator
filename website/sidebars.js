@@ -40,7 +40,7 @@ module.exports = {
           'plugins/typescript-urql',
           'plugins/typescript-oclif',
           'plugins/named-operations-object',
-          'plugins/typescript-type-graphql'
+          'plugins/typescript-type-graphql',
         ],
       },
       {
@@ -62,6 +62,11 @@ module.exports = {
         type: 'category',
         label: '.NET',
         items: ['plugins/c-sharp', 'plugins/c-sharp-operations'],
+      },
+      {
+        type: 'category',
+        label: 'Python',
+        items: ['plugins/python'],
       },
       {
         type: 'category',

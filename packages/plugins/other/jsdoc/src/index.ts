@@ -8,6 +8,7 @@ import {
   FieldDefinitionNode,
   concatAST,
   InputValueDefinitionNode,
+  StringValueNode,
 } from 'graphql';
 import { DEFAULT_SCALARS, RawDocumentsConfig } from '@graphql-codegen/visitor-plugin-common';
 
@@ -20,10 +21,25 @@ const transformScalar = (scalar: string) => {
 };
 
 const createDocBlock = (lines: Array<string>) => {
-  const typedef = ['/**', ...lines.map(line => ` * ${line}`), ' */'];
+  const typedef = [
+    '/**',
+    ...lines
+      .filter(t => t && t !== '')
+      .reduce((prev, t) => [...prev, ...t.split('\n')], [] as string[])
+      .map(line => ` * ${line}`),
+    ' */',
+  ];
   const block = typedef.join('\n');
 
   return block;
+};
+
+const createDescriptionBlock = (nodeWithDesc: any | { description?: StringValueNode }): string => {
+  if (nodeWithDesc?.description?.value) {
+    return `@description ${nodeWithDesc.description.value}`;
+  }
+
+  return '';
 };
 
 export const plugin: PluginFunction<RawDocumentsConfig> = (schema, documents) => {
@@ -41,29 +57,39 @@ export const plugin: PluginFunction<RawDocumentsConfig> = (schema, documents) =>
       leave(node: unknown) {
         const typedNode = node as { name: string; fields: Array<string> };
 
-        return createDocBlock([`@typedef {Object} ${typedNode.name}`, ...typedNode.fields]);
+        return createDocBlock([
+          `@typedef {Object} ${typedNode.name}`,
+          createDescriptionBlock(node),
+          ...typedNode.fields,
+        ]);
       },
     },
     InputObjectTypeDefinition: {
       leave(node: unknown) {
         const typedNode = node as { name: string; fields: Array<string> };
 
-        return createDocBlock([`@typedef {Object} ${typedNode.name}`, ...typedNode.fields]);
+        return createDocBlock([
+          `@typedef {Object} ${typedNode.name}`,
+          createDescriptionBlock(node),
+          ...typedNode.fields,
+        ]);
       },
     },
     InterfaceTypeDefinition: {
       leave(node: unknown) {
         const typedNode = node as { name: string; fields: Array<string> };
 
-        return createDocBlock([`@typedef {Object} ${typedNode.name}`, ...typedNode.fields]);
+        return createDocBlock([
+          `@typedef {Object} ${typedNode.name}`,
+          createDescriptionBlock(node),
+          ...typedNode.fields,
+        ]);
       },
     },
     UnionTypeDefinition: {
       leave(node) {
         if (node.types !== undefined) {
-          return `/**
- * @typedef {(${node.types.join('|')})} ${node.name}
- */`;
+          return createDocBlock([`@typedef {(${node.types.join('|')})} ${node.name}`, createDescriptionBlock(node)]);
         }
 
         return node;
@@ -88,6 +114,21 @@ export const plugin: PluginFunction<RawDocumentsConfig> = (schema, documents) =>
         return node.type;
       },
     },
+    Directive: {
+      enter(node) {
+        if (node.name.value !== 'deprecated') {
+          return null;
+        }
+
+        const reason = node.arguments?.find(arg => arg.name.value === 'reason');
+
+        if (reason?.value.kind !== 'StringValue') {
+          return null;
+        }
+
+        return ` - DEPRECATED: ${reason.value.value}`;
+      },
+    },
     FieldDefinition: {
       enter(node) {
         if (node.type.kind === 'NonNullType') {
@@ -98,8 +139,10 @@ export const plugin: PluginFunction<RawDocumentsConfig> = (schema, documents) =>
       },
       leave(node: FieldDefinitionNode & { nonNullable?: boolean }) {
         const fieldName = node.nonNullable ? node.name : `[${node.name}]`;
+        const description = node.description && node.description.value ? ` - ${node.description.value}` : '';
+        const directives = node?.directives?.filter(d => d !== null && d !== undefined);
 
-        return `@property {${node.type}} ${fieldName}`;
+        return `@property {${node.type}} ${fieldName}${description}${directives}`;
       },
     },
     InputValueDefinition: {
@@ -113,7 +156,9 @@ export const plugin: PluginFunction<RawDocumentsConfig> = (schema, documents) =>
       leave(node: InputValueDefinitionNode & { nonNullable?: boolean }) {
         const fieldName = node.nonNullable ? node.name : `[${node.name}]`;
 
-        return `@property {${node.type}} ${fieldName}`;
+        return `@property {${node.type}} ${fieldName}${
+          node.description && node.description.value ? ` - ${node.description.value}` : ''
+        }`;
       },
     },
     ListType: {
@@ -132,16 +177,17 @@ export const plugin: PluginFunction<RawDocumentsConfig> = (schema, documents) =>
     },
     ScalarTypeDefinition: {
       leave(node) {
-        return createDocBlock([`@typedef {*} ${node.name}`]);
+        return createDocBlock([`@typedef {*} ${node.name}`, createDescriptionBlock(node)]);
       },
     },
     EnumTypeDefinition: {
       leave(node) {
-        return createDocBlock([
-          `@typedef {String} ${node.name}`,
-          '@readonly',
-          ...(node.values || []).map(v => `@property {String} ${v.name}`),
-        ]);
+        const values = node?.values?.map(value => `"${value.name}"`).join('|');
+
+        /** If for some reason the enum does not contain any values we fallback to "any" or "*" */
+        const valueType = values ? `(${values})` : '*';
+
+        return createDocBlock([`@typedef {${valueType}} ${node.name}`, createDescriptionBlock(node)]);
       },
     },
   });

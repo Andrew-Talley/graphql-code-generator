@@ -1,7 +1,77 @@
+import '@graphql-codegen/testing';
 import { buildSchema } from 'graphql';
 import { plugin } from '../src/index';
 
 describe('JSDoc Operations Plugin', () => {
+  describe('description', () => {
+    it('Should work with described schemas', async () => {
+      const schema = buildSchema(/* Graphql */ `
+        """ type desc """
+        type Foo {
+          """ type field desc """
+            foo: Int!
+        }
+
+        """ input desc """
+        input FooInput {
+            """ input field desc """
+            foo: Int!
+        }
+
+        """ enum desc """
+        enum Test {
+            A
+            B
+            """ enum value desc """
+            C
+        }
+
+        """ scalar desc """
+        scalar Date
+
+        """ interface desc """
+        interface Node {
+          """ interface field desc """
+          id: ID!
+        }
+
+        """
+        union desc
+        multiline test
+        """
+        union TestU = Foo
+
+    `);
+
+      const config = {};
+      const result = await plugin(schema, [], config, { outputFile: '' });
+
+      expect(result).toBeSimilarStringTo(`/**
+      * @typedef {("A"|"B"|"C")} Test
+      * @description  enum desc
+      */`);
+      expect(result).toBeSimilarStringTo(`/**
+      * @typedef {(Foo)} TestU
+      * @description union desc
+      * multiline test
+      */`);
+      expect(result).toBeSimilarStringTo(`/**
+      * @typedef {*} Date
+      * @description  scalar desc 
+      */`);
+      expect(result).toBeSimilarStringTo(`/**
+      * @typedef {Object} FooInput
+      * @description  input desc 
+      * @property {number} foo -  input field desc 
+      */`);
+      expect(result).toBeSimilarStringTo(`/**
+      * @typedef {Object} Foo
+      * @description  type desc 
+      * @property {number} foo -  type field desc 
+      */`);
+    });
+  });
+
   describe('schema types', () => {
     it('should generate a typedef with a property', async () => {
       const schema = buildSchema(/* Graphql */ `
@@ -113,6 +183,35 @@ describe('JSDoc Operations Plugin', () => {
 
       expect(result).toEqual(expect.stringContaining('@typedef {*} Bar'));
       expect(result).toEqual(expect.stringContaining('@property {Bar} [foo]'));
+    });
+
+    it('should generate a typedef for enums', async () => {
+      const schema = buildSchema(/* Graphql */ `
+        enum FooOrBar {
+            FOO
+            BAR
+        }
+    `);
+
+      const config = {};
+      const result = await plugin(schema, [], config, { outputFile: '' });
+
+      expect(result).toEqual(expect.stringContaining('* @typedef {("FOO"|"BAR")} FooOrBar'));
+    });
+
+    it('should generate an annotation for deprecated fields', async () => {
+      const warning = 'the field foo is no longer supported, prefer bar';
+      const schema = buildSchema(/* Graphql */ `
+        type Query {
+            foo: String! @deprecated(reason: "${warning}")
+            bar: String!
+        }
+    `);
+
+      const config = {};
+      const result = await plugin(schema, [], config, { outputFile: '' });
+
+      expect(result).toEqual(expect.stringContaining(`* @property {string} foo - DEPRECATED: ${warning}`));
     });
   });
 });

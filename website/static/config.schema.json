@@ -353,6 +353,11 @@
           "$ref": "#/definitions/EnumValuesMap",
           "description": "Overrides the default value of enum values declared in your GraphQL schema."
         },
+        "namespaceName": {
+          "default": "GraphQLCodeGen",
+          "description": "Allow you to customize the namespace name.",
+          "type": "string"
+        },
         "className": {
           "default": "Types",
           "description": "Allow you to customize the parent class name.",
@@ -393,12 +398,13 @@
       "description": "This plugin generates C# `class` based on your GraphQL operations.",
       "type": "object",
       "properties": {
-        "namedClient": {
-          "description": "Defined the global value of `namedClient`.",
+        "namespaceName": {
+          "default": "GraphQLCodeGen",
+          "description": "Allow you to customize the namespace name.",
           "type": "string"
         },
-        "serviceName": {
-          "description": "Defined the global value of `serviceName`.",
+        "namedClient": {
+          "description": "Defined the global value of `namedClient`.",
           "type": "string"
         },
         "querySuffix": {
@@ -508,9 +514,13 @@
       }
     },
     "PythonPluginConfig": {
-      "description": "This plugin generates the base Python types, based on your GraphQL schema.\n\nThis is equivalent of the `typescript` plugin. The generated types are simple, refer to your schema's exact structure, and will be used as the base type for future plugins (such as `python-operations`).\n\nThis package requires Python 3.7, since that is the first time optionals were introduced. If you do need support for Python 3.6 or 3.5, [let us know](https://github.com/dotansimha/graphql-code-generator/issues/new/choose), and we can try to start supporting that.",
+      "description": "This plugin generates the base Python types, based on your GraphQL schema.\n\nThis is equivalent of the `typescript` plugin. The generated types are simple, refer to your schema's exact structure, and will be used as the base type for future plugins (such as `python-operations`).\n\nBy default, this package only supports Python 3.8+, since that is the first time literal types were introduced. If you do need support for Python 3.5-3.7, you'll need to use the typenameAsString option.",
       "type": "object",
       "properties": {
+        "typenameAsString": {
+          "description": "Uses `Scalars.String` for typename instead of Literal. It also removes the Literal import. This provides compatibility for Python 3.5-3.7.",
+          "type": "boolean"
+        },
         "addUnderscoreToArgsType": {
           "description": "Adds `_` to generated `Args` types in order to avoid duplicate identifiers.",
           "type": "boolean"
@@ -1036,6 +1046,21 @@
           "default": false,
           "description": "Generates immutable types by adding `readonly` to properties and uses `ReadonlyArray`.",
           "type": "boolean"
+        },
+        "namespacedImportName": {
+          "default": "''",
+          "description": "Prefixes all GraphQL related generated types with that value, as namespaces import.\nYou can use this featuere to allow seperation of plugins to different files.",
+          "type": "string"
+        },
+        "resolverTypeSuffix": {
+          "default": "Resolvers",
+          "description": "Suffix we add to each generated type resolver.",
+          "type": "string"
+        },
+        "allResolversTypeName": {
+          "default": "Resolvers",
+          "description": "The type name to use when exporting all resolvers signature as unified type.",
+          "type": "string"
         },
         "scalars": {
           "$ref": "#/definitions/ScalarsMap",
@@ -2107,6 +2132,21 @@
           "default": false,
           "description": "Generates immutable types by adding `readonly` to properties and uses `ReadonlyArray`.",
           "type": "boolean"
+        },
+        "namespacedImportName": {
+          "default": "''",
+          "description": "Prefixes all GraphQL related generated types with that value, as namespaces import.\nYou can use this featuere to allow seperation of plugins to different files.",
+          "type": "string"
+        },
+        "resolverTypeSuffix": {
+          "default": "Resolvers",
+          "description": "Suffix we add to each generated type resolver.",
+          "type": "string"
+        },
+        "allResolversTypeName": {
+          "default": "Resolvers",
+          "description": "The type name to use when exporting all resolvers signature as unified type.",
+          "type": "string"
         },
         "scalars": {
           "$ref": "#/definitions/ScalarsMap",
@@ -4286,11 +4326,11 @@
             },
             {
               "const": "python",
-              "description": "This plugin generates the base Python types, based on your GraphQL schema.\n\nThis is equivalent of the `typescript` plugin. The generated types are simple, refer to your schema's exact structure, and will be used as the base type for future plugins (such as `python-operations`).\n\nThis package requires Python 3.7, since that is the first time optionals were introduced. If you do need support for Python 3.6 or 3.5, [let us know](https://github.com/dotansimha/graphql-code-generator/issues/new/choose), and we can try to start supporting that.\n\nFor more details and documentation: https://graphql-code-generator.com/docs/plugins/python\n\n=> Make sure to include \"@graphql-codegen/python\" in your package.json file and install your dependencies.\n\n"
+              "description": "This plugin generates the base Python types, based on your GraphQL schema.\n\nThis is equivalent of the `typescript` plugin. The generated types are simple, refer to your schema's exact structure, and will be used as the base type for future plugins (such as `python-operations`).\n\nBy default, this package only supports Python 3.8+, since that is the first time literal types were introduced. If you do need support for Python 3.5-3.7, you'll need to use the typenameAsString option.\n\nFor more details and documentation: https://graphql-code-generator.com/docs/plugins/python\n\n=> Make sure to include \"@graphql-codegen/python\" in your package.json file and install your dependencies.\n\n"
             },
             {
               "const": "@graphql-codegen/python",
-              "description": "This plugin generates the base Python types, based on your GraphQL schema.\n\nThis is equivalent of the `typescript` plugin. The generated types are simple, refer to your schema's exact structure, and will be used as the base type for future plugins (such as `python-operations`).\n\nThis package requires Python 3.7, since that is the first time optionals were introduced. If you do need support for Python 3.6 or 3.5, [let us know](https://github.com/dotansimha/graphql-code-generator/issues/new/choose), and we can try to start supporting that.\n\nFor more details and documentation: https://graphql-code-generator.com/docs/plugins/python\n\n=> Make sure to include \"@graphql-codegen/python\" in your package.json file and install your dependencies.\n\n"
+              "description": "This plugin generates the base Python types, based on your GraphQL schema.\n\nThis is equivalent of the `typescript` plugin. The generated types are simple, refer to your schema's exact structure, and will be used as the base type for future plugins (such as `python-operations`).\n\nBy default, this package only supports Python 3.8+, since that is the first time literal types were introduced. If you do need support for Python 3.5-3.7, you'll need to use the typenameAsString option.\n\nFor more details and documentation: https://graphql-code-generator.com/docs/plugins/python\n\n=> Make sure to include \"@graphql-codegen/python\" in your package.json file and install your dependencies.\n\n"
             },
             {
               "const": "schema-ast",
